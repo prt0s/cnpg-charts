@@ -28,10 +28,11 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Import PGP Private Key
-        run: |
-          echo "${{ secrets.PGP_PRIVATE_KEY }}" | gpg --dearmor --output /tmp/keyring.gpg
-          echo "${{ secrets.PGP_KEY_PASSPHRASE }}" > /tmp/passphrase-file.txt
+      # PGP signing disabled for fork
+      # - name: Import PGP Private Key
+      #   run: |
+      #     echo "${{ secrets.PGP_PRIVATE_KEY }}" | gpg --dearmor --output /tmp/keyring.gpg
+      #     echo "${{ secrets.PGP_KEY_PASSPHRASE }}" > /tmp/passphrase-file.txt
 
       - name: Set up Helm
         uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
@@ -46,17 +47,17 @@ jobs:
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_KEY: helm-charts+no-reply@cloudnative-pg.io
-          CR_KEYRING: /tmp/keyring.gpg
-          CR_PASSPHRASE_FILE: /tmp/passphrase-file.txt
-          CR_SIGN: true
+          # CR_KEY: helm-charts+no-reply@cloudnative-pg.io
+          # CR_KEYRING: /tmp/keyring.gpg
+          # CR_PASSPHRASE_FILE: /tmp/passphrase-file.txt
+          CR_SIGN: false
           CR_SKIP_EXISTING: true
           CR_GENERATE_RELEASE_NOTES: true
           CR_RELEASE_NAME_TEMPLATE: "{{ .Name }}-v{{ .Version }}"
 
-      - name: Securely delete the PGP key and passphrase
-        if: always()
-        run: shred --remove=wipesync /tmp/keyring.gpg /tmp/passphrase-file.txt
+      # - name: Securely delete the PGP key and passphrase
+      #   if: always()
+      #   run: shred --remove=wipesync /tmp/keyring.gpg /tmp/passphrase-file.txt
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -85,5 +86,5 @@ jobs:
             name=${file%-*}
             version=${file%.*}
             version=${version##*-}
-            cosign sign --yes ghcr.io/"${GITHUB_REPOSITORY}"/"${name}":"${version}"
+            # cosign sign --yes ghcr.io/"${GITHUB_REPOSITORY}"/"${name}":"${version}"
           done
